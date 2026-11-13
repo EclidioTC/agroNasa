@@ -1,14 +1,26 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Ativa o CORS para permitir ligações do frontend
 
-@app.route("/", methods=["GET"])
+# Rota principal
+@app.route('/', methods=['GET'])
 def home():
     return jsonify({
-        "status": "Sucesso",
         "mensagem": "API do agroNasa a funcionar perfeitamente!",
-        "responsavel": "Membro 2 - Backend & Infraestrutura"
+        "responsavel": "Membro 2 - Backend & Infraestrutura",
+        "status": "Sucesso"
     })
 
-if __name__ == "__main__":
+# Nova rota para receber dados agrícolas (ex: sensores ou formulários)
+@app.route('/api/dados', methods=['POST'])
+def receber_dados():
+    conteudo = request.get_json()
+    return jsonify({
+        "status": "Dados recebidos com sucesso!",
+        "dados": conteudo
+    }), 201
+
+if __name__ == '__main__':
     app.run(debug=True, port=5000)
