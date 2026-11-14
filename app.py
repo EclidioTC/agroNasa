@@ -16,6 +16,7 @@ def ussd_simulator():
 def web_dashboard():
     return render_template('smartinterface.html')
 
+# Rotas para servir os ficheiros estáticos e JSON diretamente
 @app.route('/estilo.css')
 def estilo():
     return send_from_directory('.', 'estilo.css')
@@ -23,6 +24,14 @@ def estilo():
 @app.route('/app.js')
 def javascript():
     return send_from_directory('.', 'app.js')
+
+@app.route('/frases_validadas.json')
+def frases_json():
+    return send_from_directory('.', 'frases_validadas.json')
+
+@app.route('/contrato_oficial.json')
+def contrato_json():
+    return send_from_directory('.', 'contrato_oficial.json')
 
 @app.route('/previsao', methods=['GET', 'POST'])
 def previsao():
