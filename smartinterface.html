@@ -125,7 +125,7 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
   </div>
   <footer class="app-footer">AgroNasa • NASA Space Apps Challenge • As respostas da IA são um apoio. Em caso de dúvida, fale com o técnico de extensão agrária do seu distrito.</footer>
 </main>
-   <script>
+<script>
 /* Culturas mais cultivadas em Boane (hortícolas, milho e batata, com rega do rio Umbeluzi). */
 const REGIOES = {
   "Boane": {
@@ -214,9 +214,17 @@ class AgroNasaController {
   transicionarEstado(dados) {
     if (!dados) return;
 
-    // Função inteligente que procura elementos no DOM por ID ou por texto de rótulo próximo
-    const atualizarCampo = (ids, textoRotulo, novoValor) => {
-      // 1. Tenta atualizar por ID direto
+    // Atualiza o nível de risco
+    const riscoEl = document.getElementById("risco") || document.getElementById("nivel-risco");
+    if (riscoEl) riscoEl.textContent = dados.nivel_risco || dados.risco || "Moderado a Alto";
+
+    // Atualiza a confiança
+    const confiancaEl = document.getElementById("confianca");
+    if (confiancaEl) confiancaEl.textContent = dados.confianca || "92%";
+
+    // Função inteligente que usa .includes para ignorar emojis (📍, ✅, ❌)
+    const atualizarPorRotulo = (ids, termoChave, novoValor) => {
+      // 1. Tenta por ID direto
       for (let id of ids) {
         const el = document.getElementById(id);
         if (el) {
@@ -224,10 +232,10 @@ class AgroNasaController {
           return;
         }
       }
-      // 2. Tenta encontrar o elemento baseado no texto visível na página
+      // 2. Tenta por texto contendo a palavra-chave
       const todos = document.querySelectorAll("*");
       for (let el of todos) {
-        if (el.textContent.trim().startsWith(textoRotulo) && el.children.length === 0) {
+        if (el.textContent.includes(termoChave) && el.children.length === 0) {
           let alvo = el.nextElementSibling || (el.parentElement ? el.parentElement.querySelector("span, p, strong, div") : null);
           if (alvo && alvo !== el) {
             alvo.textContent = novoValor;
@@ -237,14 +245,12 @@ class AgroNasaController {
       }
     };
 
-    atualizarCampo(["risco", "nivel-risco"], "Aguardando", dados.nivel_risco || "Moderado a Alto");
-    atualizarCampo(["confianca"], "CONFIANÇA", dados.confianca || "92%");
-    atualizarCampo(["cultivadas", "mais-cultivadas"], "Mais cultivadas", dados.cultivadas || "Milho, Feijão, hortícolas");
-    atualizarCampo(["recomendadas", "culturas-recomendadas"], "Culturas Recomendadas", dados.recomendadas || "Mandioca, Batata-doce, sorgo");
-    atualizarCampo(["evitar", "culturas-evitar"], "Culturas a Evitar", dados.evitar || "Culturas de ciclo curto sem rega garantida");
-    atualizarCampo(["seguro", "seguro-parametrizado"], "Seguro Paramétrico", dados.seguro_parametrizado || "1.500 MZN");
+    atualizarPorRotulo(["cultivadas", "mais-cultivadas"], "Mais cultivadas", dados.cultivadas || "Milho, Feijão, hortícolas");
+    atualizarPorRotulo(["recomendadas", "culturas-recomendadas"], "Culturas Recomendadas", dados.recomendadas || "Mandioca, Batata-doce, sorgo");
+    atualizarPorRotulo(["evitar", "culturas-evitar"], "Culturas a Evitar", dados.evitar || "Culturas de ciclo curto sem rega garantida");
+    atualizarPorRotulo(["seguro", "seguro-parametrizado"], "Seguro Paramétrico", dados.seguro_parametrizado || "1.500 MZN");
 
-    // Atualiza também o estado visual no topo do bloco de diagnóstico
+    // Atualiza o estado visual no topo do bloco
     const estadoTopo = document.querySelector(".estado, [id*='estado']");
     if (estadoTopo) estadoTopo.textContent = "ESTADO: CONCLUÍDO";
   }
