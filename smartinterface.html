@@ -202,25 +202,42 @@ class AgroNasaController {
   }
 transicionarEstado(dados) {
     if (!dados) return;
-    
-    // Protege contra valores indefinidos antes de aplicar toUpperCase
-    const nivelRisco = dados.nivel_risco ? String(dados.nivel_risco).toUpperCase() : "MODERADO";
-    
-    // Resto do código da função que atualiza o DOM (ex: elementos de texto, cores, etc.)
-    const elementoNivel = document.getElementById("nivel-risco");
-    if (elementoNivel) {
-        elementoNivel.textContent = nivelRisco;
+
+    // Atualiza o nível de risco climatérico
+    const riscoEl = document.getElementById("risco") || document.getElementById("nivel-risco");
+    if (riscoEl) {
+        riscoEl.textContent = dados.nivel_risco || dados.risco || "Moderado a Alto";
     }
-    
-    // Preenche também os outros campos de forma segura
-    const recomendadasEl = document.getElementById("culturas-recomendadas");
-    if (recomendadasEl) recomendadasEl.textContent = dados.recomendadas || "Mandioca, Batata-doce, sorgo";
-    
-    const evitarEl = document.getElementById("culturas-evitar");
-    if (evitarEl) evitarEl.textContent = dados.evitar || "Culturas de ciclo curto sem rega garantida";
-    
-    const seguroEl = document.getElementById("seguro-parametrizado");
-    if (seguroEl) seguroEl.textContent = dados.seguro_parametrizado || "1.500 MZN";
+
+    // Atualiza a percentagem de confiança
+    const confiancaEl = document.getElementById("confianca");
+    if (confiancaEl) {
+        confiancaEl.textContent = dados.confianca || "89%";
+    }
+
+    // Atualiza as culturas mais cultivadas
+    const cultivadasEl = document.getElementById("cultivadas") || document.getElementById("mais-cultivadas");
+    if (cultivadasEl) {
+        cultivadasEl.textContent = dados.cultivadas || "Milho, Feijão, hortícolas";
+    }
+
+    // Atualiza as culturas recomendadas
+    const recomendadasEl = document.getElementById("recomendadas") || document.getElementById("culturas-recomendadas");
+    if (recomendadasEl) {
+        recomendadasEl.textContent = dados.recomendadas || "Mandioca, Batata-doce, sorgo";
+    }
+
+    // Atualiza as culturas a evitar
+    const evitarEl = document.getElementById("evitar") || document.getElementById("culturas-evitar");
+    if (evitarEl) {
+        evitarEl.textContent = dados.evitar || "Culturas de ciclo curto com alta exigência hídrica sem rega garantida";
+    }
+
+    // Atualiza o valor do seguro paramétrico
+    const seguroEl = document.getElementById("seguro") || document.getElementById("seguro-parametrizado");
+    if (seguroEl) {
+        seguroEl.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
+    }
 }
   /* ---------- CHATBOT ---------- */
   addMsg(tipo, texto) {
