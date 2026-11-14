@@ -125,7 +125,7 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
   </div>
   <footer class="app-footer">AgroNasa • NASA Space Apps Challenge • As respostas da IA são um apoio. Em caso de dúvida, fale com o técnico de extensão agrária do seu distrito.</footer>
 </main>
-<script>
+   <script>
 /* Culturas mais cultivadas em Boane (hortícolas, milho e batata, com rega do rio Umbeluzi). */
 const REGIOES = {
   "Boane": {
@@ -138,7 +138,6 @@ const REGIOES = {
 
 class AgroNasaController {
   constructor() {
-    // Vazio = mesmo servidor que serve esta página (Flask)
     this.apiBase = "";
     this.estadoAtual = "AGUARDANDO";
     this.contrato = null;
@@ -146,9 +145,13 @@ class AgroNasaController {
     this.slideAtual = 0;
     this.iniciarCarrosselFundo();
     this.addMsg("bot", "Olá, agricultor! Escreva aqui a sua dúvida ou preocupação sobre a machamba (pragas, rega, plantio, venda…). Para respostas mais certas, faça primeiro a consulta ao satélite.");
-    document.getElementById("chat-texto").addEventListener("keydown", e => {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.enviarMensagem(); }
-    });
+    
+    const chatTexto = document.getElementById("chat-texto");
+    if (chatTexto) {
+      chatTexto.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.enviarMensagem(); }
+      });
+    }
   }
 
   iniciarCarrosselFundo() {
@@ -184,7 +187,6 @@ class AgroNasaController {
         console.warn("A usar dados locais devido a falha de rede:", error);
     }
 
-    // Se o servidor falhou ou não devolveu dados, usa a simulação local baseada em REGIOES
     if (!dados) {
         const regiaoChave = Object.keys(REGIOES).find(k => regiao.includes(k)) || "Boane";
         const r = REGIOES[regiaoChave];
@@ -212,23 +214,39 @@ class AgroNasaController {
   transicionarEstado(dados) {
     if (!dados) return;
 
-    const riscoEl = document.getElementById("risco") || document.getElementById("nivel-risco");
-    if (riscoEl) riscoEl.textContent = dados.nivel_risco || dados.risco || "Moderado a Alto";
+    // Função inteligente que procura elementos no DOM por ID ou por texto de rótulo próximo
+    const atualizarCampo = (ids, textoRotulo, novoValor) => {
+      // 1. Tenta atualizar por ID direto
+      for (let id of ids) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = novoValor;
+          return;
+        }
+      }
+      // 2. Tenta encontrar o elemento baseado no texto visível na página
+      const todos = document.querySelectorAll("*");
+      for (let el of todos) {
+        if (el.textContent.trim().startsWith(textoRotulo) && el.children.length === 0) {
+          let alvo = el.nextElementSibling || (el.parentElement ? el.parentElement.querySelector("span, p, strong, div") : null);
+          if (alvo && alvo !== el) {
+            alvo.textContent = novoValor;
+            return;
+          }
+        }
+      }
+    };
 
-    const confiancaEl = document.getElementById("confianca");
-    if (confiancaEl) confiancaEl.textContent = dados.confianca || "89%";
+    atualizarCampo(["risco", "nivel-risco"], "Aguardando", dados.nivel_risco || "Moderado a Alto");
+    atualizarCampo(["confianca"], "CONFIANÇA", dados.confianca || "92%");
+    atualizarCampo(["cultivadas", "mais-cultivadas"], "Mais cultivadas", dados.cultivadas || "Milho, Feijão, hortícolas");
+    atualizarCampo(["recomendadas", "culturas-recomendadas"], "Culturas Recomendadas", dados.recomendadas || "Mandioca, Batata-doce, sorgo");
+    atualizarCampo(["evitar", "culturas-evitar"], "Culturas a Evitar", dados.evitar || "Culturas de ciclo curto sem rega garantida");
+    atualizarCampo(["seguro", "seguro-parametrizado"], "Seguro Paramétrico", dados.seguro_parametrizado || "1.500 MZN");
 
-    const cultivadasEl = document.getElementById("cultivadas") || document.getElementById("mais-cultivadas");
-    if (cultivadasEl) cultivadasEl.textContent = dados.cultivadas || "Milho, Feijão, hortícolas";
-
-    const recomendadasEl = document.getElementById("recomendadas") || document.getElementById("culturas-recomendadas");
-    if (recomendadasEl) recomendadasEl.textContent = dados.recomendadas || "Mandioca, Batata-doce, sorgo";
-
-    const evitarEl = document.getElementById("evitar") || document.getElementById("culturas-evitar");
-    if (evitarEl) evitarEl.textContent = dados.evitar || "Culturas de ciclo curto com alta exigência hídrica sem rega garantida";
-
-    const seguroEl = document.getElementById("seguro") || document.getElementById("seguro-parametrizado");
-    if (seguroEl) seguroEl.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
+    // Atualiza também o estado visual no topo do bloco de diagnóstico
+    const estadoTopo = document.querySelector(".estado, [id*='estado']");
+    if (estadoTopo) estadoTopo.textContent = "ESTADO: CONCLUÍDO";
   }
 
   addMsg(tipo, texto) {
@@ -287,7 +305,6 @@ class AgroNasaController {
   }
 }
 
-// Exposto globalmente no objeto window para satisfazer os eventos onclick do HTML
 window.app = new AgroNasaController();
 </script>
 </body>
