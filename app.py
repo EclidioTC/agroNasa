@@ -25,6 +25,7 @@ def serve_static(filename):
 @app.route('/api/previsao', methods=['GET', 'POST'])
 @app.route('/chat', methods=['GET', 'POST'])
 @app.route('/api/chat', methods=['GET', 'POST'])
+@app.route('/api/chatbot', methods=['GET', 'POST'])
 def previsao_chat():
     if request.method == 'POST':
         dados = request.get_json(silent=True) or request.form.to_dict()
@@ -38,6 +39,7 @@ def previsao_chat():
 
         return jsonify({
             "status": "sucesso",
+            "resposta_assistente": resposta_ia,
             "resposta": resposta_ia,
             "mensagem": resposta_ia,
             "dados_recebidos": dados
