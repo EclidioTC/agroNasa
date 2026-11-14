@@ -1,33 +1,28 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from modelo import prever_risco_agricola, responder_assistente
+from modelo import responder_assistente
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', template_folder='.')
 CORS(app)
 
-@app.route('/api/dados', methods=['POST'])
-def receber_dados():
-    conteudo = request.get_json() or {}
-    regiao = conteudo.get("regiao", "Maputo / Boane")
-    data = conteudo.get("data", "2026-11-14")
-    resultado = prever_risco_agricola(regiao, data)
-    return jsonify({"status": "Sucesso", "resultado": resultado}), 201
+@app.route('/')
+def index():
+    # Serve o novo index.html da raiz do projeto
+    return send_from_directory('.', 'index.html')
 
-# Rota do Assistente Inteligente do agroNasa
+@app.route('/<path:filename>')
+def serve_static(filename):
+    # Permite ao servidor carregar CSS, JS e ficheiros de áudio da pasta audio/
+    return send_from_directory('.', filename)
+
 @app.route('/api/chatbot', methods=['POST'])
-def endpoint_chatbot():
-    conteudo = request.get_json() or {}
-    pergunta = conteudo.get("pergunta", "")
-    regiao = conteudo.get("regiao", "Maputo / Boane")
+def chatbot():
+    dados = request.get_json()
+    pergunta = dados.get('pergunta', '')
+    regiao = dados.get('regiao', 'Maputo / Boane')
     
-    # Gera a resposta com base estrita nos dados reais de satélite da NASA
-    resposta_texto = responder_assistente(pergunta, regiao)
-    
-    return jsonify({
-        "status": "Sucesso",
-        "pergunta_utilizador": pergunta,
-        "resposta_assistente": resposta_texto
-    }), 200
+    resposta = responder_assistente(pergunta, regiao)
+    return jsonify({"resposta_assistente": resposta})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
