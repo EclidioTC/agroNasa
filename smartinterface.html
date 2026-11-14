@@ -29,6 +29,7 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
 .input-group select,.input-group input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #b7e4c7;font:inherit;font-size:13px;background:#fff;color:var(--tx)}
 .btn-primary{width:100%;background:var(--vp);color:#fff;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,transform .1s}
 .btn-primary:hover{background:var(--vd)}.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.6;cursor:wait}
 .traffic-light-panel{display:flex;align-items:center;gap:14px;background:#f8fbf9;padding:12px;border-radius:12px;border:1px solid #d8f3dc;margin-bottom:14px}
 .lights-column{display:flex;flex-direction:column;gap:6px;background:#1b261d;padding:8px;border-radius:20px}
 .light{width:16px;height:16px;border-radius:50%;opacity:.22;transition:opacity .3s,box-shadow .3s}
@@ -81,6 +82,7 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
   </header>
 
   <div class="app-body">
+    <!-- 1. DADOS DA MACHAMBA -->
     <section class="app-card">
       <div class="section-title"><span>1. Dados da Machamba</span><span class="uml-state-tag" id="uml-state-label">ESTADO: AGUARDANDO</span></div>
       <div class="form-row">
@@ -90,14 +92,27 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
           </select></div>
         <div class="input-group"><label for="data">Data de Plantio</label><input type="date" id="data" value="2026-11-14"></div>
       </div>
-      <button class="btn-primary" onclick="app.consultarRiscoNasa()">🛰️ Consultar Satélite NASA</button>
+
+      <div class="input-group" style="margin-bottom:12px">
+        <label for="simulacao">Fonte dos dados</label>
+        <select id="simulacao">
+          <option value="nasa">🛰️ Dados reais da NASA</option>
+          <option value="verde">🟢 Simulação: humidade ideal</option>
+          <option value="amarelo">🟡 Simulação: chuva irregular</option>
+          <option value="seca">🔴 Simulação: seca severa</option>
+          <option value="cheia">🔴 Simulação: risco de cheia</option>
+        </select>
+      </div>
+
+      <button class="btn-primary" id="btn-consultar" onclick="window.app.consultarRiscoNasa()">🛰️ Consultar Satélite NASA</button>
     </section>
 
+    <!-- 2. DIAGNÓSTICO -->
     <section class="app-card">
       <div class="section-title"><span>2. Diagnóstico Climático</span><span id="prob-badge" class="muted">Confiança: --</span></div>
       <div class="traffic-light-panel">
         <div class="lights-column"><div class="light red" id="luz-vermelho"></div><div class="light yellow" id="luz-amarelo"></div><div class="light green" id="luz-verde"></div></div>
-        <div class="state-details"><h2 id="cenario-titulo">Aguardando Consulta</h2><p id="cenario-desc">Selecione o distrito e toque em consultar para avaliar o risco.</p></div>
+        <div class="state-details"><h2 id="cenario-titulo">Aguardando Consulta</h2><p id="cenario-desc">Toque em consultar para avaliar o risco.</p></div>
       </div>
       <div class="crops-block"><span class="label">📍 Mais cultivadas nesta região:</span><div class="tags-wrap" id="lista-regiao"><span class="muted">--</span></div></div>
       <div class="crops-block"><span class="label">✅ Culturas Recomendadas agora:</span><div class="tags-wrap" id="lista-recomendadas"><span class="muted">--</span></div></div>
@@ -106,194 +121,155 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
         <div><div style="font-size:11.5px;font-weight:600;color:var(--vp)">🛡️ Seguro Paramétrico</div><div class="muted" style="font-size:11px" id="seguro-status">Inativo</div></div>
         <div class="val" id="seguro-valor">0.00 MZN</div>
       </div>
-      <button class="btn-audio" onclick="app.tocarAudioAlerta()">🔊 Ouvir Alerta em Áudio (Modo IVR)</button>
+      <button class="btn-audio" onclick="window.app.tocarAudioAlerta()">🔊 Ouvir Alerta em Áudio (Modo IVR)</button>
     </section>
 
+    <!-- 3. CHATBOT -->
     <section class="app-card">
       <div class="section-title"><span>3. Assistente AgroNasa (IA)</span></div>
       <div class="chat-log" id="chat-log" aria-live="polite"></div>
       <div class="chat-input">
         <textarea id="chat-texto" rows="1" placeholder="Escreva a sua preocupação… (ex.: as folhas do tomate estão a amarelar)"></textarea>
-        <button id="chat-enviar" onclick="app.enviarMensagem()">Enviar</button>
+        <button id="chat-enviar" onclick="window.app.enviarMensagem()">Enviar</button>
       </div>
       <div class="quick-actions">
-        <button onclick="app.enviarMensagem('Porquê este nível de alerta?')">💬 Porquê este alerta?</button>
-        <button onclick="app.enviarMensagem('Qual a melhor cultura para plantar agora?')">🌱 O que plantar?</button>
-        <button onclick="app.enviarMensagem('Quando recebo o seguro?')">🛡️ Seguro</button>
+        <button onclick="window.app.enviarMensagem('Porquê este nível de alerta?')">💬 Porquê este alerta?</button>
+        <button onclick="window.app.enviarMensagem('Qual a melhor cultura para plantar agora?')">🌱 O que plantar?</button>
+        <button onclick="window.app.enviarMensagem('Quando recebo o seguro?')">🛡️ Seguro</button>
       </div>
     </section>
   </div>
   <footer class="app-footer">AgroNasa • NASA Space Apps Challenge • As respostas da IA são um apoio. Em caso de dúvida, fale com o técnico de extensão agrária do seu distrito.</footer>
 </main>
-   <script>
-/* Culturas mais cultivadas em Boane (hortícolas, milho e batata, com rega do rio Umbeluzi). */
+
+<script>
+const CONFIG = {
+  API_BASE: "",
+  ENDPOINTS: { previsao: "/api/previsao", chat: "/api/chatbot" },
+  MODO_NASA_PADRAO: true,
+  HISTORICO_MAX: 8
+};
+
 const REGIOES = {
   "Boane": {
     principais: ["Alface", "Couve", "Cenoura", "Cebola", "Alho", "Tomate", "Pimentão", "Milho", "Batata"],
-    cenario: { nivel: "verde", cenario: "Humidade Ideal", probabilidade: 0.92,
-      culturas_recomendadas: ["Alface", "Couve", "Cenoura", "Cebola", "Tomate", "Pimentão", "Batata", "Beterraba"],
-      culturas_a_evitar: [], compensacao: 0 }
+    cenarios: {
+      verde: { nivel: "verde", cenario: "Humidade Ideal", probabilidade: 0.92,
+        culturas_recomendadas: ["Alface", "Couve", "Cenoura", "Cebola", "Tomate", "Pimentão", "Batata", "Beterraba"],
+        culturas_a_evitar: [], compensacao: 0 },
+      amarelo: { nivel: "amarelo", cenario: "Chuva Irregular", probabilidade: 0.76,
+        culturas_recomendadas: ["Couve", "Cenoura", "Cebola", "Alho", "Batata", "Beterraba"],
+        culturas_a_evitar: ["Alface", "Tomate sem cobertura de palha"], compensacao: 1800 },
+      seca: { nivel: "vermelho", cenario: "Seca Severa", probabilidade: 0.89,
+        culturas_recomendadas: ["Milho (variedade resistente)", "Feijão nhemba", "Mandioca", "Batata-doce", "Amendoim"],
+        culturas_a_evitar: ["Alface", "Couve", "Tomate", "Batata"], compensacao: 4500 },
+      cheia: { nivel: "vermelho", cenario: "Risco de Cheia", probabilidade: 0.85,
+        culturas_recomendadas: ["Feijão nhemba", "Milho de ciclo curto", "Couve (depois da cheia)"],
+        culturas_a_evitar: ["Cebola", "Batata", "Cenoura"], compensacao: 4500 }
+    }
   }
 };
 
 class AgroNasaController {
   constructor() {
-    this.apiBase = "";
     this.estadoAtual = "AGUARDANDO";
     this.contrato = null;
     this.historico = [];
     this.slideAtual = 0;
+    if (!CONFIG.MODO_NASA_PADRAO) document.getElementById("simulacao").value = "verde";
     this.iniciarCarrosselFundo();
     this.addMsg("bot", "Olá, agricultor! Escreva aqui a sua dúvida ou preocupação sobre a machamba (pragas, rega, plantio, venda…). Para respostas mais certas, faça primeiro a consulta ao satélite.");
-    
-    const chatTexto = document.getElementById("chat-texto");
-    if (chatTexto) {
-      chatTexto.addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.enviarMensagem(); }
-      });
-    }
+    document.getElementById("chat-texto").addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.enviarMensagem(); }
+    });
   }
+
+  url(caminho) { return CONFIG.API_BASE + caminho; }
 
   iniciarCarrosselFundo() {
     const slides = document.querySelectorAll(".hero-slide");
-    if (slides.length > 0) {
-      setInterval(() => {
-        slides[this.slideAtual].classList.remove("ativa");
-        this.slideAtual = (this.slideAtual + 1) % slides.length;
-        slides[this.slideAtual].classList.add("ativa");
-      }, 10000);
-    }
-  }
-
-  async consultarRiscoNasa() {
-    const regiaoSelect = document.getElementById("regiao");
-    const dataInput = document.getElementById("data");
-    const regiao = regiaoSelect ? regiaoSelect.value : "Boane (Maputo)";
-    const data = dataInput ? dataInput.value : "";
-    
-    let dados = null;
-
-    try {
-        const response = await fetch('/api/previsao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ regiao, data })
-        });
-        
-        if (response.ok) {
-            dados = await response.json();
-        }
-    } catch (error) {
-        console.warn("A usar dados locais devido a falha de rede:", error);
-    }
-
-    if (!dados) {
-        const regiaoChave = Object.keys(REGIOES).find(k => regiao.includes(k)) || "Boane";
-        const r = REGIOES[regiaoChave];
-        dados = {
-            regiao: regiao,
-            nivel: r.cenario.nivel.toLowerCase(), // "verde", "amarelo" ou "vermelho"
-            nivel_risco: r.cenario.nivel.toUpperCase() === "VERDE" ? "Baixo a Moderado" : "Moderado a Alto",
-            confianca: `${Math.round(r.cenario.probabilidade * 100)}% (NASA MODIS)`,
-            cultivadas: r.principais.slice(0, 4).join(", "),
-            recomendadas: r.cenario.culturas_recomendadas.join(", "),
-            evitar: r.cenario.culturas_a_evitar.length ? r.cenario.culturas_a_evitar.join(", ") : "Nenhuma restrição crítica para esta época",
-            seguro_parametrizado: `${r.cenario.compensacao > 0 ? r.cenario.compensacao : 1500} MZN`,
-            cenario: r.cenario.cenario
-        };
-    }
-
-    this.contrato = dados;
-    this.statusConexao(true);
-    this.transicionarEstado(dados);
+    setInterval(() => {
+      slides[this.slideAtual].classList.remove("ativa");
+      this.slideAtual = (this.slideAtual + 1) % slides.length;
+      slides[this.slideAtual].classList.add("ativa");
+    }, 10000);
   }
 
   statusConexao(online) {
-    const dot = document.getElementById("conn-dot");
-    const txt = document.getElementById("conn-text");
-    if (dot) dot.classList.toggle("offline", !online);
-    if (txt) txt.textContent = online ? "Online (API)" : "Modo Demo";
+    document.getElementById("conn-dot").classList.toggle("offline", !online);
+    document.getElementById("conn-text").textContent = online ? "Online (API)" : "Modo Demo";
   }
 
-  transicionarEstado(dados) {
-    if (!dados) return;
+  /* ---------- API 1: DIAGNÓSTICO ---------- */
+  async consultarRiscoNasa() {
+    const botao = document.getElementById("btn-consultar");
+    const regiao = document.getElementById("regiao").value;
+    const data = document.getElementById("data").value;
+    const simulacao = document.getElementById("simulacao").value;
+    botao.disabled = true;
+    let dados;
+    try {
+      const r = await fetch(this.url(CONFIG.ENDPOINTS.previsao), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regiao, data, simulacao })
+      });
+      if (!r.ok) throw new Error("Servidor indisponível");
+      dados = await r.json();
+      this.statusConexao(true);
+    } catch (e) {
+      this.statusConexao(false);
+      if (simulacao === "nasa") {
+        document.getElementById("cenario-titulo").textContent = "Sem dados da NASA";
+        document.getElementById("cenario-desc").textContent =
+          "Não foi possível obter os dados agora. Verifique a internet e o servidor, ou escolha uma simulação.";
+        botao.disabled = false;
+        return;
+      }
+      dados = this.simulacaoLocal(regiao, simulacao);
+    }
+    this.transicionarEstado(dados);
+    botao.disabled = false;
+  }
 
-    // 1. Atualiza o nível de risco textual
-    const riscoEl = document.getElementById("risco") || document.getElementById("nivel-risco");
-    if (riscoEl) riscoEl.textContent = dados.nivel_risco || dados.risco || "Moderado a Alto";
+  simulacaoLocal(regiao, simulacao) {
+    const r = REGIOES[regiao] || REGIOES["Boane"];
+    return { regiao: REGIOES[regiao] ? regiao : "Boane", ...(r.cenarios[simulacao] || r.cenarios.verde),
+             fonte: "Simulação (demonstração)" };
+  }
 
-    // 2. Acende o semáforo visualmente com base no nível (verde, amarelo ou vermelho)
-    const nivelAlerta = (dados.nivel || "verde").toLowerCase();
-    const luzesSemafaro = document.querySelectorAll(".semaforo span, .semaforo div, .luz-semaforo, [class*='luz'], [class*='semaforo']");
-    
-    luzesSemafaro.forEach(luz => {
-      luz.classList.remove("ativo", "acesa", "verde", "amarelo", "vermelho");
+  tags(id, lista, classe, vazio) {
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    if (!lista || !lista.length) { el.innerHTML = `<span class="muted">${vazio}</span>`; return; }
+    lista.forEach(c => {
+      const s = document.createElement("span");
+      s.className = "tag " + classe; s.textContent = c; el.appendChild(s);
     });
-
-    // Tenta encontrar a luz específica correspondente ao nível e ativa-a
-    const luzAlvo = document.querySelector(`.semaforo .${nivelAlerta}, [class*='${nivelAlerta}']`);
-    if (luzAlvo) {
-      luzAlvo.classList.add("ativo", "acesa");
-    } else {
-      // Fallback: se não achar classes diretas, ilumina a primeira, segunda ou terceira luz do semáforo
-      const blocoSemaforo = document.querySelector(".semaforo");
-      if (blocoSemaforo) {
-        const luzes = blocoSemaforo.querySelectorAll("div, span");
-        if (nivelAlerta.includes("verde") && luzes[2]) luzes[2].classList.add("ativo", "acesa");
-        else if (nivelAlerta.includes("amarelo") && luzes[1]) luzes[1].classList.add("ativo", "acesa");
-        else if (luzes[0]) luzes[0].classList.add("ativo", "acesa"); // Vermelho por defeito se alto risco
-      }
-    }
-
-    // 3. Atualiza a confiança
-    const confiancaEl = document.getElementById("confianca");
-    if (confiancaEl) confiancaEl.textContent = dados.confianca || "92%";
-
-    const atualizarPorRotulo = (ids, termoChave, novoValor) => {
-      for (let id of ids) {
-        const el = document.getElementById(id);
-        if (el) {
-          el.textContent = novoValor;
-          return;
-        }
-      }
-      const todos = document.querySelectorAll("*");
-      for (let el of todos) {
-        if (el.textContent.includes(termoChave) && el.children.length === 0) {
-          let alvo = el.nextElementSibling || (el.parentElement ? el.parentElement.querySelector("span, p, strong, div") : null);
-          if (alvo && alvo !== el) {
-            alvo.textContent = novoValor;
-            return;
-          }
-        }
-      }
-    };
-
-    atualizarPorRotulo(["cultivadas", "mais-cultivadas"], "Mais cultivadas", dados.cultivadas || "Milho, Feijão, hortícolas");
-    atualizarPorRotulo(["recomendadas", "culturas-recomendadas"], "Culturas Recomendadas", dados.recomendadas || "Mandioca, Batata-doce, sorgo");
-    atualizarPorRotulo(["evitar", "culturas-evitar"], "Culturas a Evitar", dados.evitar || "Culturas de ciclo curto sem rega garantida");
-    
-    // 4. Atualiza o seguro paramétrico substituindo o "0.00 MZN"
-    const seguroEl = document.getElementById("seguro") || document.getElementById("seguro-parametrizado");
-    if (seguroEl) {
-      seguroEl.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
-    } else {
-      const todos = document.querySelectorAll("*");
-      for (let el of todos) {
-        if (el.textContent.trim() === "0.00 MZN" && el.children.length === 0) {
-          el.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
-          break;
-        }
-      }
-    }
-
-    const estadoTopo = document.querySelector(".estado, [id*='estado']");
-    if (estadoTopo) estadoTopo.textContent = "ESTADO: CONCLUÍDO";
   }
 
+  transicionarEstado(d) {
+    this.contrato = d;
+    this.estadoAtual = String(d.nivel).toUpperCase();
+    document.getElementById("uml-state-label").textContent = "ESTADO: " + this.estadoAtual;
+    document.getElementById("prob-badge").textContent = "Confiança: " + Math.round(d.probabilidade * 100) + "%";
+    ["verde", "amarelo", "vermelho"].forEach(c => document.getElementById("luz-" + c).classList.remove("on"));
+    const luz = document.getElementById("luz-" + String(d.nivel).toLowerCase());
+    if (luz) luz.classList.add("on");
+    document.getElementById("cenario-titulo").textContent = `${d.cenario} (${d.regiao})`;
+    document.getElementById("cenario-desc").textContent =
+      (d.explicacao || `Nível de risco ${this.estadoAtual}.`) + (d.fonte ? ` Fonte: ${d.fonte}.` : "");
+    this.tags("lista-regiao", (REGIOES[d.regiao] || {}).principais, "regiao", "--");
+    this.tags("lista-recomendadas", d.culturas_recomendadas, "", "--");
+    this.tags("lista-evitar", d.culturas_a_evitar, "evitar", "Nenhuma restrição");
+    const comp = Number(d.compensacao || 0);
+    document.getElementById("seguro-valor").textContent = comp.toFixed(2) + " MZN";
+    document.getElementById("seguro-status").textContent = comp > 0 ? "Gatilho acionado automaticamente" : "Sem acionamento necessário";
+    this.addMsg("bot", `Consulta concluída para ${d.regiao}: ${d.cenario}. Pode escrever a sua pergunta.`);
+  }
+
+  /* ---------- API 2: CHATBOT ---------- */
   addMsg(tipo, texto) {
     const log = document.getElementById("chat-log");
-    if (!log) return null;
     const div = document.createElement("div");
     div.className = "msg " + tipo;
     div.textContent = texto;
@@ -305,41 +281,80 @@ class AgroNasaController {
   async enviarMensagem(textoPronto) {
     const campo = document.getElementById("chat-texto");
     const botao = document.getElementById("chat-enviar");
-    const texto = (textoPronto || (campo ? campo.value : "")).trim();
-    if (!texto || (botao && botao.disabled)) return;
-    if (campo) campo.value = "";
-    
+    const log = document.getElementById("chat-log");
+    const texto = (textoPronto || campo.value).trim();
+    if (!texto || botao.disabled) return;
+    campo.value = "";
     this.addMsg("user", texto);
-    if (botao) botao.disabled = true;
-    const espera = this.addMsg("bot typing", "A pensar...");
+    botao.disabled = true;
+    const espera = this.addMsg("bot typing", "A pensar…");
 
+    const regiao = document.getElementById("regiao").value;
+    const contexto = { regiao, data_plantio: document.getElementById("data").value,
+      diagnostico: this.contrato, culturas_da_regiao: (REGIOES[regiao] || {}).principais };
+
+    let resposta = "", balao = null;
     try {
-        const regiaoSelect = document.getElementById("regiao");
-        const regiaoNome = regiaoSelect ? regiaoSelect.value : "Maputo / Boane";
+      const r = await fetch(this.url(CONFIG.ENDPOINTS.chat), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensagem: texto, historico: this.historico.slice(-CONFIG.HISTORICO_MAX), contexto })
+      });
+      if (!r.ok) throw new Error("Chat indisponível");
 
-        const response = await fetch('/api/chatbot', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pergunta: texto, regiao: regiaoNome })
-        });
-
-        const data = await response.json();
-        if (espera) espera.remove();
-        this.addMsg("bot", data.resposta_assistente || data.resposta || "Resposta recebida com sucesso.");
-
-    } catch (error) {
-        console.error("Erro na ligação com o servidor:", error);
-        if (espera) espera.remove();
-        this.addMsg("bot", "Erro de ligação com o servidor do agroNasa.");
-    } finally {
-        if (botao) botao.disabled = false;
+      const contentType = r.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const jsonRes = await r.json();
+        resposta = jsonRes.resposta_assistente || jsonRes.resposta || "";
+        espera.remove(); balao = this.addMsg("bot", resposta);
+      } else {
+        const leitor = r.body.getReader();
+        const decodificador = new TextDecoder();
+        while (true) {
+          const { done, value } = await leitor.read();
+          if (done) break;
+          resposta += decodificador.decode(value, { stream: true });
+          if (!balao) { espera.remove(); balao = this.addMsg("bot", ""); }
+          balao.textContent = resposta;
+          log.scrollTop = log.scrollHeight;
+        }
+      }
+      if (!resposta.trim()) throw new Error("Resposta vazia");
+      this.statusConexao(true);
+    } catch (e) {
+      this.statusConexao(false);
+      espera.remove();
+      if (balao) balao.remove();
+      resposta = this.respostaLocal(texto, regiao) + "\n\n(Modo demo: IA offline)";
+      this.addMsg("bot", resposta);
     }
+    this.historico.push({ role: "user", content: texto }, { role: "assistant", content: resposta });
+    botao.disabled = false; campo.focus();
+  }
+
+  respostaLocal(t, regiao) {
+    t = t.toLowerCase();
+    const d = this.contrato, r = REGIOES[regiao] || REGIOES["Boane"];
+    if (/praga|lagarta|inseto|insecto|doen|folha|amarel|mancha/.test(t))
+      return "Veja a parte de baixo das folhas e o caule. Retire as plantas muito doentes, evite regar à noite e não deixe água parada. Leve uma folha ao técnico de extensão agrária para identificar o problema antes de usar qualquer produto.";
+    if (/seguro|compensa|pagamento/.test(t))
+      return !d ? "Faça primeiro a consulta ao satélite." : d.compensacao > 0
+        ? `O seguro foi acionado e prevê ${Number(d.compensacao).toFixed(2)} MZN para ${d.regiao}.` : "No estado VERDE o seguro fica só em monitorização, sem pagamento.";
+    if (/porqu|alerta|nível|nivel/.test(t))
+      return !d ? "Faça primeiro a consulta ao satélite." : (d.explicacao || `Os dados indicam ${d.cenario} em ${d.regiao}.`);
+    if (/plant|cultura|semente|sement/.test(t))
+      return d ? `Em ${d.regiao}, agora recomendamos: ${d.culturas_recomendadas.join(", ")}.` + (d.culturas_a_evitar.length ? ` Evite: ${d.culturas_a_evitar.join(", ")}.` : "")
+               : `As culturas mais plantadas em ${regiao} são: ${r.principais.join(", ")}. Faça a consulta para saber quais são melhores agora.`;
+    if (/rega|água|agua|seca|chuva/.test(t))
+      return "Regue cedo de manhã ou ao fim da tarde. Cubra o solo com palha para guardar humidade. Se o alerta for vermelho, prefira culturas que aguentam a seca.";
+    if (/vend|preço|preco|mercado/.test(t))
+      return "Junte-se a outros produtores da sua associação para vender em maior quantidade e negociar melhor o preço. Consulte os preços no mercado do distrito antes de colher.";
+    return "Pode dar mais detalhes? Diga qual é a cultura, desde quando acontece e o que reparou na machamba.";
   }
 
   tocarAudioAlerta() {
     if (!this.contrato) { alert("Consulte primeiro os dados da machamba para ouvir o alerta."); return; }
     const d = this.contrato;
-    const texto = `Atenção agricultor de ${d.regiao || 'Boane'}. O nível de alerta é ${d.nivel || 'Moderado'}, com cenário de ${d.cenario || 'Humidade Ideal'}. Recomendamos plantar ${d.recomendadas}.`;
+    const texto = `Atenção agricultor de ${d.regiao}. O nível de alerta é ${d.nivel}, com cenário de ${d.cenario}. Recomendamos plantar ${d.culturas_recomendadas.join(", ")}.`;
     if ("speechSynthesis" in window) {
       speechSynthesis.cancel();
       const f = new SpeechSynthesisUtterance(texto); f.lang = "pt-PT"; speechSynthesis.speak(f);
@@ -347,8 +362,8 @@ class AgroNasaController {
   }
 }
 
+// Expõe globalmente para que os botões onclick funcionem perfeitamente
 window.app = new AgroNasaController();
-</script>
 </script>
 </body>
 </html>
