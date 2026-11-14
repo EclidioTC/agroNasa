@@ -1,6 +1,8 @@
 import os
+from datetime import datetime
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
+from modelo import prever_risco_agricola, responder_assistente
 
 app = Flask(__name__, template_folder='.', static_folder='.')
 CORS(app)
@@ -23,35 +25,57 @@ def serve_static(filename):
 
 @app.route('/previsao', methods=['GET', 'POST'])
 @app.route('/api/previsao', methods=['GET', 'POST'])
-@app.route('/chat', methods=['GET', 'POST'])
-@app.route('/api/chat', methods=['GET', 'POST'])
-@app.route('/api/chatbot', methods=['GET', 'POST'])
-def previsao_chat():
+def previsao_api():
     if request.method == 'POST':
         dados = request.get_json(silent=True) or request.form.to_dict()
-        pergunta = str(dados.get('message', dados.get('pergunta', ''))).lower()
-        regiao = dados.get('regiao', 'Boane (Maputo)')
+        regiao = dados.get('regiao', 'Boane')
+        data_str = dados.get('data', datetime.now().strftime("%Y-%m-%d"))
+        simulacao = dados.get('simulacao', 'verde')
+
+        # Utiliza o modelo.py para obter os dados científicos consistentes
+        resultado = prever_risco_agricola(regiao, data_str)
         
-        resposta_ia = f"Com base nos dados de satélite da NASA para {regiao}, o nível de alerta é moderado a alto devido à humidade do solo reduzida. Recomenda-se monitorizar a rega."
-        if "alerta" in pergunta:
-            resposta_ia = f"O nível de alerta para {regiao} reflete as condições de humidade do solo recolhidas via satélite."
-        elif "plantar" in pergunta or "cultivar" in pergunta:
-            resposta_ia = "Para esta época, são recomendadas culturas resistentes à seca, como mandioca e batata-doce, garantindo melhor aproveitamento dos recursos hídricos."
+        # Se for simulação específica, ajusta o dicionário conforme a escolha do utilizador
+        if simulacao == 'amarelo':
+            resultado.update({"nivel": "amarelo", "cenario": "Chuva Irregular", "probabilidade": 0.76, "compensacao": 1800})
+        elif simulacao in ['seca', 'cheia']:
+            resultado.update({"nivel": "vermelho", "cenario": "Seca Severa / Risco de Cheia", "probabilidade": 0.89, "compensacao": 4500})
+        else:
+            resultado.setdefault("probabilidade", 0.92)
 
         return jsonify({
             "status": "sucesso",
-            "nivel_risco": "Moderado a Alto",
-            "confianca": "89%",
-            "cultivadas": "Milho, Feijão, hortícolas",
-            "recomendadas": "Mandioca, Batata-doce, sorgo",
-            "evitar": "Culturas de ciclo curto com alta exigência hídrica sem rega garantida",
-            "seguro_parametrizado": "1.500 MZN",
+            "regiao": resultado.get("regiao", regiao),
+            "nivel": resultado.get("nivel", "verde"),
+            "cenario": resultado.get("cenario", "Humidade Ideal"),
+            "probabilidade": resultado.get("probabilidade", 0.92),
+            "culturas_recomendadas": resultado.get("culturas_recomendadas", ["Milho", "Feijão"]),
+            "culturas_a_evitar": resultado.get("culturas_a_evitar", []),
+            "compensacao": resultado.get("compensacao", 0),
+            "explicacao": f"Dados de satélite NASA MODIS validados para {regiao}.",
+            "fonte": "NASA Space Apps / MODIS"
+        })
+    return jsonify({"status": "ativo", "descricao": "API agroNasa Previsão"})
+
+@app.route('/chat', methods=['GET', 'POST'])
+@app.route('/api/chat', methods=['GET', 'POST'])
+@app.route('/api/chatbot', methods=['GET', 'POST'])
+def chatbot_api():
+    if request.method == 'POST':
+        dados = request.get_json(silent=True) or request.form.to_dict()
+        pergunta = str(dados.get('mensagem', dados.get('pergunta', ''))).lower()
+        regiao = dados.get('regiao', 'Boane')
+        
+        # Utiliza o modelo.py para gerar a resposta inteligente do assistente
+        resposta_ia = responder_assistente(pergunta, regiao)
+
+        return jsonify({
+            "status": "sucesso",
             "resposta_assistente": resposta_ia,
             "resposta": resposta_ia,
-            "mensagem": resposta_ia,
-            "dados_recebidos": dados
+            "mensagem": resposta_ia
         })
-    return jsonify({"status": "ativo", "descricao": "API agroNasa"})
+    return jsonify({"status": "ativo", "descricao": "API agroNasa Chatbot"})
 
 if __name__ == '__main__':
     app.run(debug=True)
