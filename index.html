@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>USSD Simulator — AgroNasa</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="header">AgroNasa</div>
+      <div class="content" id="content">A carregar...</div>
+    </div>
+    <div class="keypad">
+      <button onclick="press('1')">1</button>
+      <button onclick="press('2')">2</button>
+      <button onclick="press('3')">3</button>
+      <button onclick="press('4')">4</button>
+      <button onclick="press('5')">5</button>
+      <button onclick="press('6')">6</button>
+      <button onclick="press('7')">7</button>
+      <button onclick="press('8')">8</button>
+      <button onclick="press('9')">9</button>
+      <button onclick="press('*')">*</button>
+      <button onclick="press('0')">0</button>
+      <button onclick="press('#')">#</button>
+    </div>
+  </div>
+  <audio id="ivr" preload="auto"></audio>
+  <script src="app.js"></script>
+</body>
+</html>

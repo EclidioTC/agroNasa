@@ -1,0 +1,10 @@
+{
+  "regiao": "Boane",
+  "data": "2026-11-14",
+  "cenario": "seca",
+  "nivel": "vermelho",
+  "probabilidade": 0.84,
+  "culturas_recomendadas": ["Mandioca", "Sorgo (Mapira)", "Feijao Nhemba"],
+  "culturas_a_evitar": ["Milho"],
+  "compensacao": 2500.00
+}

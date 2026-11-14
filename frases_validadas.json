@@ -1,0 +1,19 @@
+{
+  "pt": {
+    "bemVindo": "",
+    "menu": "1. Ver alerta<br>2. Conselho de culturas<br>3. Ouvir por voz<br>4. Sair<br><br>",
+    "menuIdioma": "Escolha a língua:<br>1. Português<br>2. Xichangana<br><br>",
+    "aCarregar": "A consultar satélite...",
+    "erro": "Sem ligação ao servidor.<br>Tenta novamente.",
+    "obrigado": "Obrigado. Volte sempre.",
+    "alertaPrefixo": "Alerta",
+    "nivelVerde": "VERDE",
+    "nivelAmarelo": "AMARELO",
+    "nivelVermelho": "VERMELHO",
+    "plantar": "Plantar",
+    "evitar": "Evitar",
+    "compensacao": "Compensacao",
+    "voltar": "* para voltar"
+  },
+  "xh": {}
+}
