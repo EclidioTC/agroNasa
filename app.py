@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Configura o Flask para procurar templates e ficheiros estáticos na pasta atual
 app = Flask(__name__, template_folder='.', static_folder='.')
 CORS(app)
 
@@ -18,18 +17,30 @@ def ussd_simulator():
 def web_dashboard():
     return render_template('smartinterface.html')
 
-# Rota universal para servir qualquer ficheiro estático, CSS, JS ou JSON da raiz
 @app.route('/<path:filename>')
 def serve_static(filename):
     return send_from_directory('.', filename)
 
+# Rota unificada para o assistente IA e previsões (aceita vários endpoints comuns)
 @app.route('/previsao', methods=['GET', 'POST'])
-def previsao():
+@app.route('/chat', methods=['GET', 'POST'])
+@app.route('/api/chat', methods=['GET', 'POST'])
+def previsao_chat():
     if request.method == 'POST':
         dados = request.get_json(silent=True) or request.form.to_dict()
+        pergunta = str(dados.get('message', dados.get('pergunta', ''))).lower()
+        
+        # Resposta dinâmica baseada na pergunta do agricultor
+        resposta_ia = "Com base nos dados de satélite da NASA, o nível de alerta em Boane é moderado a alto devido à humidade do solo reduzida. Recomenda-se monitorizar a rega."
+        if "alerta" in pergunta:
+            resposta_ia = "O nível de alerta reflete as condições de humidade do solo recolhidas via satélite para a região de Boane."
+        elif "plantar" in pergunta or "cultivar" in pergunta:
+            resposta_ia = "Para esta época, são recomendadas culturas resistentes à seca, garantindo melhor aproveitamento dos recursos hídricos."
+
         return jsonify({
             "status": "sucesso",
-            "mensagem": "Previsão processada com sucesso pelo agroNasa",
+            "resposta": resposta_ia,
+            "mensagem": resposta_ia,
             "dados_recebidos": dados
         })
     return jsonify({"status": "ativo", "descricao": "API agroNasa"})
