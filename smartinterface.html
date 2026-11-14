@@ -200,25 +200,28 @@ class AgroNasaController {
       s.className = "tag " + classe; s.textContent = c; el.appendChild(s);
     });
   }
-
-  transicionarEstado(d) {
-    this.contrato = d;
-    this.estadoAtual = d.nivel.toUpperCase();
-    document.getElementById("uml-state-label").textContent = "ESTADO: " + this.estadoAtual;
-    document.getElementById("prob-badge").textContent = "Confiança: " + Math.round(d.probabilidade * 100) + "%";
-    ["verde", "amarelo", "vermelho"].forEach(c => document.getElementById("luz-" + c).classList.remove("on"));
-    const luz = document.getElementById("luz-" + d.nivel.toLowerCase());
-    if (luz) luz.classList.add("on");
-    document.getElementById("cenario-titulo").textContent = `${d.cenario} (${d.regiao})`;
-    document.getElementById("cenario-desc").textContent = `Nível de risco ${this.estadoAtual} detetado pelos satélites NASA.`;
-    this.tags("lista-regiao", (REGIOES[d.regiao] || {}).principais || [], "regiao", "--");
-    this.tags("lista-recomendadas", d.culturas_recomendadas, "", "--");
-    this.tags("lista-evitar", d.culturas_a_evitar, "evitar", "Nenhuma restrição");
-    document.getElementById("seguro-valor").textContent = d.compensacao.toFixed(2) + " MZN";
-    document.getElementById("seguro-status").textContent = d.compensacao > 0 ? "Gatilho acionado automaticamente" : "Sem acionamento necessário";
-    this.addMsg("bot", `Consulta concluída para ${d.regiao}: ${d.cenario}. Pode escrever a sua pergunta.`);
-  }
-
+transicionarEstado(dados) {
+    if (!dados) return;
+    
+    // Protege contra valores indefinidos antes de aplicar toUpperCase
+    const nivelRisco = dados.nivel_risco ? String(dados.nivel_risco).toUpperCase() : "MODERADO";
+    
+    // Resto do código da função que atualiza o DOM (ex: elementos de texto, cores, etc.)
+    const elementoNivel = document.getElementById("nivel-risco");
+    if (elementoNivel) {
+        elementoNivel.textContent = nivelRisco;
+    }
+    
+    // Preenche também os outros campos de forma segura
+    const recomendadasEl = document.getElementById("culturas-recomendadas");
+    if (recomendadasEl) recomendadasEl.textContent = dados.recomendadas || "Mandioca, Batata-doce, sorgo";
+    
+    const evitarEl = document.getElementById("culturas-evitar");
+    if (evitarEl) evitarEl.textContent = dados.evitar || "Culturas de ciclo curto sem rega garantida";
+    
+    const seguroEl = document.getElementById("seguro-parametrizado");
+    if (seguroEl) seguroEl.textContent = dados.seguro_parametrizado || "1.500 MZN";
+}
   /* ---------- CHATBOT ---------- */
   addMsg(tipo, texto) {
     const log = document.getElementById("chat-log");
