@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 
-app = Flask(__name__, template_folder='.')
+# Configura o Flask para procurar templates e ficheiros estáticos na pasta atual
+app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
 CORS(app)
 
 # Rota principal e rota /ussd -> Abrem o Simulador USSD (index.html)
