@@ -1,11 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 
-# Configura o Flask para procurar templates e ficheiros estáticos na pasta atual
-app = Flask(__name__, template_folder='.', static_folder='.', static_url_path='')
+app = Flask(__name__, template_folder='.')
 CORS(app)
 
-# Rota principal e rota /ussd -> Abrem o Simulador USSD (index.html)
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -14,12 +12,19 @@ def home():
 def ussd_simulator():
     return render_template('index.html')
 
-# Rota /web -> Abre a Interface Gráfica / Dashboard (smartinterface.html)
 @app.route('/web')
 def web_dashboard():
     return render_template('smartinterface.html')
 
-# Endpoint para previsões e dados de satélite da NASA
+# Rotas explícitas para servir o CSS e o JS diretamente da raiz
+@app.route('/estilo.css')
+def estilo():
+    return send_from_directory('.', 'estilo.css')
+
+@app.route('/app.js')
+def javascript():
+    return send_from_directory('.', 'app.js')
+
 @app.route('/previsao', methods=['GET', 'POST'])
 def previsao():
     if request.method == 'POST':
