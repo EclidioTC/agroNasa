@@ -125,7 +125,7 @@ body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:fle
   </div>
   <footer class="app-footer">AgroNasa • NASA Space Apps Challenge • As respostas da IA são um apoio. Em caso de dúvida, fale com o técnico de extensão agrária do seu distrito.</footer>
 </main>
-<script>
+   <script>
 /* Culturas mais cultivadas em Boane (hortícolas, milho e batata, com rega do rio Umbeluzi). */
 const REGIOES = {
   "Boane": {
@@ -191,15 +191,19 @@ class AgroNasaController {
         const regiaoChave = Object.keys(REGIOES).find(k => regiao.includes(k)) || "Boane";
         const r = REGIOES[regiaoChave];
         dados = {
+            regiao: regiao,
+            nivel: r.cenario.nivel.toLowerCase(), // "verde", "amarelo" ou "vermelho"
             nivel_risco: r.cenario.nivel.toUpperCase() === "VERDE" ? "Baixo a Moderado" : "Moderado a Alto",
             confianca: `${Math.round(r.cenario.probabilidade * 100)}% (NASA MODIS)`,
             cultivadas: r.principais.slice(0, 4).join(", "),
             recomendadas: r.cenario.culturas_recomendadas.join(", "),
             evitar: r.cenario.culturas_a_evitar.length ? r.cenario.culturas_a_evitar.join(", ") : "Nenhuma restrição crítica para esta época",
-            seguro_parametrizado: `${r.cenario.compensacao > 0 ? r.cenario.compensacao : 1500} MZN`
+            seguro_parametrizado: `${r.cenario.compensacao > 0 ? r.cenario.compensacao : 1500} MZN`,
+            cenario: r.cenario.cenario
         };
     }
 
+    this.contrato = dados;
     this.statusConexao(true);
     this.transicionarEstado(dados);
   }
@@ -214,17 +218,38 @@ class AgroNasaController {
   transicionarEstado(dados) {
     if (!dados) return;
 
-    // Atualiza o nível de risco
+    // 1. Atualiza o nível de risco textual
     const riscoEl = document.getElementById("risco") || document.getElementById("nivel-risco");
     if (riscoEl) riscoEl.textContent = dados.nivel_risco || dados.risco || "Moderado a Alto";
 
-    // Atualiza a confiança
+    // 2. Acende o semáforo visualmente com base no nível (verde, amarelo ou vermelho)
+    const nivelAlerta = (dados.nivel || "verde").toLowerCase();
+    const luzesSemafaro = document.querySelectorAll(".semaforo span, .semaforo div, .luz-semaforo, [class*='luz'], [class*='semaforo']");
+    
+    luzesSemafaro.forEach(luz => {
+      luz.classList.remove("ativo", "acesa", "verde", "amarelo", "vermelho");
+    });
+
+    // Tenta encontrar a luz específica correspondente ao nível e ativa-a
+    const luzAlvo = document.querySelector(`.semaforo .${nivelAlerta}, [class*='${nivelAlerta}']`);
+    if (luzAlvo) {
+      luzAlvo.classList.add("ativo", "acesa");
+    } else {
+      // Fallback: se não achar classes diretas, ilumina a primeira, segunda ou terceira luz do semáforo
+      const blocoSemaforo = document.querySelector(".semaforo");
+      if (blocoSemaforo) {
+        const luzes = blocoSemaforo.querySelectorAll("div, span");
+        if (nivelAlerta.includes("verde") && luzes[2]) luzes[2].classList.add("ativo", "acesa");
+        else if (nivelAlerta.includes("amarelo") && luzes[1]) luzes[1].classList.add("ativo", "acesa");
+        else if (luzes[0]) luzes[0].classList.add("ativo", "acesa"); // Vermelho por defeito se alto risco
+      }
+    }
+
+    // 3. Atualiza a confiança
     const confiancaEl = document.getElementById("confianca");
     if (confiancaEl) confiancaEl.textContent = dados.confianca || "92%";
 
-    // Função inteligente que usa .includes para ignorar emojis (📍, ✅, ❌)
     const atualizarPorRotulo = (ids, termoChave, novoValor) => {
-      // 1. Tenta por ID direto
       for (let id of ids) {
         const el = document.getElementById(id);
         if (el) {
@@ -232,7 +257,6 @@ class AgroNasaController {
           return;
         }
       }
-      // 2. Tenta por texto contendo a palavra-chave
       const todos = document.querySelectorAll("*");
       for (let el of todos) {
         if (el.textContent.includes(termoChave) && el.children.length === 0) {
@@ -248,9 +272,21 @@ class AgroNasaController {
     atualizarPorRotulo(["cultivadas", "mais-cultivadas"], "Mais cultivadas", dados.cultivadas || "Milho, Feijão, hortícolas");
     atualizarPorRotulo(["recomendadas", "culturas-recomendadas"], "Culturas Recomendadas", dados.recomendadas || "Mandioca, Batata-doce, sorgo");
     atualizarPorRotulo(["evitar", "culturas-evitar"], "Culturas a Evitar", dados.evitar || "Culturas de ciclo curto sem rega garantida");
-    atualizarPorRotulo(["seguro", "seguro-parametrizado"], "Seguro Paramétrico", dados.seguro_parametrizado || "1.500 MZN");
+    
+    // 4. Atualiza o seguro paramétrico substituindo o "0.00 MZN"
+    const seguroEl = document.getElementById("seguro") || document.getElementById("seguro-parametrizado");
+    if (seguroEl) {
+      seguroEl.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
+    } else {
+      const todos = document.querySelectorAll("*");
+      for (let el of todos) {
+        if (el.textContent.trim() === "0.00 MZN" && el.children.length === 0) {
+          el.textContent = dados.seguro_parametrizado || dados.seguro || "1.500 MZN";
+          break;
+        }
+      }
+    }
 
-    // Atualiza o estado visual no topo do bloco
     const estadoTopo = document.querySelector(".estado, [id*='estado']");
     if (estadoTopo) estadoTopo.textContent = "ESTADO: CONCLUÍDO";
   }
@@ -303,7 +339,7 @@ class AgroNasaController {
   tocarAudioAlerta() {
     if (!this.contrato) { alert("Consulte primeiro os dados da machamba para ouvir o alerta."); return; }
     const d = this.contrato;
-    const texto = `Atenção agricultor de ${d.regiao}. O nível de alerta é ${d.nivel}, com cenário de ${d.cenario}.`;
+    const texto = `Atenção agricultor de ${d.regiao || 'Boane'}. O nível de alerta é ${d.nivel || 'Moderado'}, com cenário de ${d.cenario || 'Humidade Ideal'}. Recomendamos plantar ${d.recomendadas}.`;
     if ("speechSynthesis" in window) {
       speechSynthesis.cancel();
       const f = new SpeechSynthesisUtterance(texto); f.lang = "pt-PT"; speechSynthesis.speak(f);
@@ -312,6 +348,7 @@ class AgroNasaController {
 }
 
 window.app = new AgroNasaController();
+</script>
 </script>
 </body>
 </html>
