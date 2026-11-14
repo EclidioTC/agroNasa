@@ -166,19 +166,20 @@ class AgroNasaController {
     const data = document.getElementById("data").value;
     let dados;
     try {
-      const r = await fetch(this.apiBase + "/api/previsao", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ regiao, data })
-      });
-      if (!r.ok) throw new Error("Servidor indisponível");
-      dados = await r.json();
-      this.statusConexao(true);
+        const r = await fetch('/api/previsao', {
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ regiao, data })
+        });
+        if (!r.ok) throw new Error("Servidor indisponível");
+        dados = await r.json();
+        this.statusConexao(true);
     } catch (e) {
-      this.statusConexao(false);
-      dados = this.simulacaoLocal(regiao);
+        this.statusConexao(false);
+        dados = this.simulacaoLocal(regiao);
     }
     this.transicionarEstado(dados);
-  }
+}
 
   statusConexao(online) {
     document.getElementById("conn-dot").classList.toggle("offline", !online);

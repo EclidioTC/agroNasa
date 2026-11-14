@@ -30,15 +30,22 @@ def previsao_chat():
     if request.method == 'POST':
         dados = request.get_json(silent=True) or request.form.to_dict()
         pergunta = str(dados.get('message', dados.get('pergunta', ''))).lower()
+        regiao = dados.get('regiao', 'Boane (Maputo)')
         
-        resposta_ia = "Com base nos dados de satélite da NASA, o nível de alerta em Boane é moderado a alto devido à humidade do solo reduzida. Recomenda-se monitorizar a rega."
+        resposta_ia = f"Com base nos dados de satélite da NASA para {regiao}, o nível de alerta é moderado a alto devido à humidade do solo reduzida. Recomenda-se monitorizar a rega."
         if "alerta" in pergunta:
-            resposta_ia = "O nível de alerta reflete as condições de humidade do solo recolhidas via satélite para a região de Boane."
+            resposta_ia = f"O nível de alerta para {regiao} reflete as condições de humidade do solo recolhidas via satélite."
         elif "plantar" in pergunta or "cultivar" in pergunta:
-            resposta_ia = "Para esta época, são recomendadas culturas resistentes à seca, garantindo melhor aproveitamento dos recursos hídricos."
+            resposta_ia = "Para esta época, são recomendadas culturas resistentes à seca, como mandioca e batata-doce, garantindo melhor aproveitamento dos recursos hídricos."
 
         return jsonify({
             "status": "sucesso",
+            "nivel_risco": "Moderado a Alto",
+            "confianca": "89%",
+            "cultivadas": "Milho, Feijão, hortícolas",
+            "recomendadas": "Mandioca, Batata-doce, sorgo",
+            "evitar": "Culturas de ciclo curto com alta exigência hídrica sem rega garantida",
+            "seguro_parametrizado": "1.500 MZN",
             "resposta_assistente": resposta_ia,
             "resposta": resposta_ia,
             "mensagem": resposta_ia,
