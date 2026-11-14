@@ -1,3 +1,26 @@
+import os
+from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask_cors import CORS
+
+app = Flask(__name__, template_folder='.', static_folder='.')
+CORS(app)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/ussd')
+def ussd_simulator():
+    return render_template('index.html')
+
+@app.route('/web')
+def web_dashboard():
+    return render_template('smartinterface.html')
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('.', filename)
+
 @app.route('/previsao', methods=['GET', 'POST'])
 @app.route('/api/previsao', methods=['GET', 'POST'])
 @app.route('/chat', methods=['GET', 'POST'])
@@ -20,3 +43,6 @@ def previsao_chat():
             "dados_recebidos": dados
         })
     return jsonify({"status": "ativo", "descricao": "API agroNasa"})
+
+if __name__ == '__main__':
+    app.run(debug=True)
