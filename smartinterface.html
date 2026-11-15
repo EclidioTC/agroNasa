@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroNasa Mobile — Monitorização Agrícola</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--vd:#132a13;--vp:#2d6a4f;--vc:#52b788;--pastel:#e9f5ed;--am:#e9c46a;--verm:#d62828;--card:rgba(255,255,255,.96);--tx:#1b261d;--tx2:#526055}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;color:var(--tx);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:20px 14px;overflow-x:hidden}
+.hero-slideshow{position:fixed;inset:0;z-index:-2}
+.hero-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.8s ease-in-out}
+.hero-slide.ativa{opacity:1}
+.hero-overlay{position:fixed;inset:0;background:linear-gradient(160deg,rgba(19,42,19,.58),rgba(45,106,79,.48));z-index:-1}
+.mobile-shell{width:100%;max-width:460px;background:rgba(244,248,245,.92);backdrop-filter:blur(12px);border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.6);overflow:hidden}
+.app-header{background:linear-gradient(135deg,var(--vd),var(--vp));color:#fff;padding:20px 22px;display:flex;justify-content:space-between;align-items:center}
+.app-header h1{font-size:20px;font-weight:700}
+.app-header p{font-size:11.5px;opacity:.88;margin-top:2px}
+.status-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.16);padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#52b788;box-shadow:0 0 6px #52b788}
+.status-dot.offline{background:var(--am);box-shadow:0 0 6px var(--am)}
+.app-body{padding:18px;display:flex;flex-direction:column;gap:16px}
+.app-card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 4px 14px rgba(19,42,19,.06);border:1px solid rgba(183,228,199,.6)}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--vp);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.uml-state-tag{font-size:10.5px;background:var(--pastel);color:var(--vd);padding:3px 8px;border-radius:6px;font-weight:600}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.input-group label{display:block;font-size:11.5px;font-weight:600;color:var(--tx2);margin-bottom:4px}
+.input-group select,.input-group input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #b7e4c7;font:inherit;font-size:13px;background:#fff;color:var(--tx)}
+.btn-primary{width:100%;background:var(--vp);color:#fff;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,transform .1s}
+.btn-primary:hover{background:var(--vd)}.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.6;cursor:wait}
+.traffic-light-panel{display:flex;align-items:center;gap:14px;background:#f8fbf9;padding:12px;border-radius:12px;border:1px solid #d8f3dc;margin-bottom:14px}
+.lights-column{display:flex;flex-direction:column;gap:6px;background:#1b261d;padding:8px;border-radius:20px}
+.light{width:16px;height:16px;border-radius:50%;opacity:.22;transition:opacity .3s,box-shadow .3s}
+.light.red{background:#ff4d4d;color:#ff4d4d}.light.yellow{background:#ffd166;color:#ffd166}.light.green{background:#06d6a0;color:#06d6a0}
+.light.on{opacity:1;box-shadow:0 0 10px currentColor}
+.state-details h2{font-size:16px;font-weight:700;color:var(--vd)}
+.state-details p{font-size:12.5px;color:var(--tx2);margin-top:3px}
+.crops-block{margin-top:10px}
+.crops-block .label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.tag{background:var(--pastel);color:var(--vp);border:1px solid #b7e4c7;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600}
+.tag.evitar{background:#ffeef0;color:var(--verm);border-color:#f5c2c7}
+.tag.regiao{background:#fff8e1;color:#7a5b00;border-color:#f0dc9a}
+.muted{font-size:12px;color:var(--tx2)}
+.insurance-box{display:flex;justify-content:space-between;align-items:center;background:var(--pastel);padding:12px 14px;border-radius:12px;margin-top:12px}
+.insurance-box .val{font-size:16px;font-weight:700;color:var(--vd)}
+.btn-audio{margin-top:10px;width:100%;background:#fff;color:var(--vd);border:1px solid var(--vp);padding:10px;border-radius:10px;font-size:12.5px;font-weight:600;cursor:pointer}
+.btn-audio:hover{background:var(--pastel)}
+/* Chat */
+.chat-log{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#f4f8f5;border-radius:12px;margin-bottom:10px}
+.msg{max-width:88%;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
+.msg.bot{background:#fff;border-left:4px solid var(--vp);align-self:flex-start}
+.msg.user{background:var(--vp);color:#fff;align-self:flex-end}
+.msg.typing{color:var(--tx2);font-style:italic}
+.chat-input{display:flex;gap:8px;align-items:flex-end}
+.chat-input textarea{flex:1;resize:none;padding:10px 12px;border-radius:10px;border:1px solid #b7e4c7;font:inherit;font-size:13px;min-height:44px;max-height:110px}
+.chat-input button{background:var(--vp);color:#fff;border:none;border-radius:10px;padding:12px 16px;font-weight:600;cursor:pointer}
+.chat-input button:disabled{opacity:.5;cursor:wait}
+.quick-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.quick-actions button{background:#fff;border:1px solid #cce3d4;padding:7px 10px;border-radius:10px;font-size:12px;font-weight:500;color:var(--vd);cursor:pointer}
+.quick-actions button:hover{background:var(--vp);color:#fff}
+.app-footer{text-align:center;font-size:11px;color:var(--tx2);padding:12px 18px 18px}
+</style>
+</head>
+<body>
+<div class="hero-slideshow">
+  <div class="hero-slide ativa" style="background-image:url('imagens/amendoim.jpg')"></div>
+  <div class="hero-slide" style="background-image:url('imagens/arroz.jpg')"></div>
+  <div class="hero-slide" style="background-image:url('imagens/beterraba.jpg')"></div>
+  <div class="hero-slide" style="background-image:url('imagens/cebola.jpg')"></div>
+  <div class="hero-slide" style="background-image:url('imagens/hortalicas.jpg')"></div>
+  <div class="hero-slide" style="background-image:url('imagens/mandioca.jpg')"></div>
+</div>
+<div class="hero-overlay"></div>
+
+<main class="mobile-shell">
+  <header class="app-header">
+    <div><h1>🌱 AgroNasa</h1><p>Monitorização de Satélite & Seguro Agrícola</p></div>
+    <div class="status-pill"><span class="status-dot" id="conn-dot"></span><span id="conn-text">Online</span></div>
+  </header>
+
+  <div class="app-body">
+    <!-- 1. DADOS DA MACHAMBA -->
+    <section class="app-card">
+      <div class="section-title"><span>1. Dados da Machamba</span><span class="uml-state-tag" id="uml-state-label">ESTADO: AGUARDANDO</span></div>
+      <div class="form-row">
+        <div class="input-group"><label for="regiao">Distrito / Região</label>
+          <select id="regiao">
+            <option value="Boane">Boane (Maputo)</option>
+          </select></div>
+        <div class="input-group"><label for="data">Data de Plantio</label><input type="date" id="data" value="2026-11-14"></div>
+      </div>
+
+      <div class="input-group" style="margin-bottom:12px">
+        <label for="simulacao">Fonte dos dados</label>
+        <select id="simulacao">
+          <option value="nasa">🛰️ Dados reais da NASA</option>
+          <option value="verde">🟢 Simulação: humidade ideal</option>
+          <option value="amarelo">🟡 Simulação: chuva irregular</option>
+          <option value="seca">🔴 Simulação: seca severa</option>
+          <option value="cheia">🔴 Simulação: risco de cheia</option>
+        </select>
+      </div>
+
+      <button class="btn-primary" id="btn-consultar" onclick="app.consultarRiscoNasa()">🛰️ Consultar Satélite NASA</button>
+    </section>
+
+    <!-- 2. DIAGNÓSTICO -->
+    <section class="app-card">
+      <div class="section-title"><span>2. Diagnóstico Climático</span><span id="prob-badge" class="muted">Confiança: --</span></div>
+      <div class="traffic-light-panel">
+        <div class="lights-column"><div class="light red" id="luz-vermelho"></div><div class="light yellow" id="luz-amarelo"></div><div class="light green" id="luz-verde"></div></div>
+        <div class="state-details"><h2 id="cenario-titulo">Aguardando Consulta</h2><p id="cenario-desc">Toque em consultar para avaliar o risco.</p></div>
+      </div>
+      <div class="crops-block"><span class="label">📍 Mais cultivadas nesta região:</span><div class="tags-wrap" id="lista-regiao"><span class="muted">--</span></div></div>
+      <div class="crops-block"><span class="label">✅ Culturas Recomendadas agora:</span><div class="tags-wrap" id="lista-recomendadas"><span class="muted">--</span></div></div>
+      <div class="crops-block"><span class="label">❌ Culturas a Evitar agora:</span><div class="tags-wrap" id="lista-evitar"><span class="muted">--</span></div></div>
+      <div class="insurance-box">
+        <div><div style="font-size:11.5px;font-weight:600;color:var(--vp)">🛡️ Seguro Paramétrico</div><div class="muted" style="font-size:11px" id="seguro-status">Inativo</div></div>
+        <div class="val" id="seguro-valor">0.00 MZN</div>
+      </div>
+      <button class="btn-audio" onclick="app.tocarAudioAlerta()">🔊 Ouvir Alerta em Áudio (Modo IVR)</button>
+    </section>
+
+    <!-- 3. CHATBOT -->
+    <section class="app-card">
+      <div class="section-title"><span>3. Assistente AgroNasa (IA)</span></div>
+      <div class="chat-log" id="chat-log" aria-live="polite"></div>
+      <div class="chat-input">
+        <textarea id="chat-texto" rows="1" placeholder="Escreva a sua preocupação… (ex.: as folhas do tomate estão a amarelar)"></textarea>
+        <button id="chat-enviar" onclick="app.enviarMensagem()">Enviar</button>
+      </div>
+      <div class="quick-actions">
+        <button onclick="app.enviarMensagem('Porquê este nível de alerta?')">💬 Porquê este alerta?</button>
+        <button onclick="app.enviarMensagem('Qual a melhor cultura para plantar agora?')">🌱 O que plantar?</button>
+        <button onclick="app.enviarMensagem('Quando recebo o seguro?')">🛡️ Seguro</button>
+      </div>
+    </section>
+  </div>
+  <footer class="app-footer">AgroNasa • NASA Space Apps Challenge • As respostas da IA são um apoio. Em caso de dúvida, fale com o técnico de extensão agrária do seu distrito.</footer>
+</main>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO DAS APIs  (é aqui que se liga o frontend ao servidor)
+   ---------------------------------------------------------------------
+   API_BASE  : "" se o Flask serve esta página.
+               Se a página estiver noutro sítio: "https://seu-servidor.com"
+   ENDPOINTS : caminhos das rotas do servidor.
+
+   CONTRATO 1 — POST ENDPOINTS.previsao
+     Envia:    { regiao, data: "AAAA-MM-DD", simulacao: "nasa"|"verde"|"amarelo"|"seca"|"cheia" }
+     Recebe:   { regiao, nivel: "verde"|"amarelo"|"vermelho", cenario, probabilidade (0 a 1),
+                 culturas_recomendadas: [], culturas_a_evitar: [], compensacao (MZN),
+                 explicacao?, fonte?, periodo?, dados? }
+     Erro:     qualquer resposta não-OK (ex.: 502)
+
+   CONTRATO 2 — POST ENDPOINTS.chat
+     Envia:    { mensagem, historico: [{role, content}], contexto: {...diagnóstico...} }
+     Recebe:   (a) texto simples em fluxo (streaming), ou
+               (b) JSON { resposta: "..." }
+   ===================================================================== */
+const CONFIG = {
+  API_BASE: "",
+  ENDPOINTS: { previsao: "/api/previsao", chat: "/api/chat" },
+  MODO_NASA_PADRAO: true,
+  HISTORICO_MAX: 8
+};
+
+/* Dados locais: culturas da região e cenários de demonstração (usados nas simulações e se a API falhar) */
+const REGIOES = {
+  "Boane": {
+    principais: ["Alface", "Couve", "Cenoura", "Cebola", "Alho", "Tomate", "Pimentão", "Milho", "Batata"],
+    cenarios: {
+      verde: { nivel: "verde", cenario: "Humidade Ideal", probabilidade: 0.92,
+        culturas_recomendadas: ["Alface", "Couve", "Cenoura", "Cebola", "Tomate", "Pimentão", "Batata", "Beterraba"],
+        culturas_a_evitar: [], compensacao: 0 },
+      amarelo: { nivel: "amarelo", cenario: "Chuva Irregular", probabilidade: 0.76,
+        culturas_recomendadas: ["Couve", "Cenoura", "Cebola", "Alho", "Batata", "Beterraba"],
+        culturas_a_evitar: ["Alface", "Tomate sem cobertura de palha"], compensacao: 1800 },
+      seca: { nivel: "vermelho", cenario: "Seca Severa", probabilidade: 0.89,
+        culturas_recomendadas: ["Milho (variedade resistente)", "Feijão nhemba", "Mandioca", "Batata-doce", "Amendoim"],
+        culturas_a_evitar: ["Alface", "Couve", "Tomate", "Batata"], compensacao: 4500 },
+      cheia: { nivel: "vermelho", cenario: "Risco de Cheia", probabilidade: 0.85,
+        culturas_recomendadas: ["Feijão nhemba", "Milho de ciclo curto", "Couve (depois da cheia)"],
+        culturas_a_evitar: ["Cebola", "Batata", "Cenoura"], compensacao: 4500 }
+    }
+  }
+};
+
+class AgroNasaController {
+  constructor() {
+    this.estadoAtual = "AGUARDANDO";
+    this.contrato = null;
+    this.historico = [];
+    this.slideAtual = 0;
+    if (!CONFIG.MODO_NASA_PADRAO) document.getElementById("simulacao").value = "verde";
+    this.iniciarCarrosselFundo();
+    this.addMsg("bot", "Olá, agricultor! Escreva aqui a sua dúvida ou preocupação sobre a machamba (pragas, rega, plantio, venda…). Para respostas mais certas, faça primeiro a consulta ao satélite.");
+    document.getElementById("chat-texto").addEventListener("keydown", e => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); this.enviarMensagem(); }
+    });
+  }
+
+  url(caminho) { return CONFIG.API_BASE + caminho; }
+
+  iniciarCarrosselFundo() {
+    const slides = document.querySelectorAll(".hero-slide");
+    setInterval(() => {
+      slides[this.slideAtual].classList.remove("ativa");
+      this.slideAtual = (this.slideAtual + 1) % slides.length;
+      slides[this.slideAtual].classList.add("ativa");
+    }, 10000);
+  }
+
+  statusConexao(online) {
+    document.getElementById("conn-dot").classList.toggle("offline", !online);
+    document.getElementById("conn-text").textContent = online ? "Online (API)" : "Modo Demo";
+  }
+
+  /* ---------- API 1: DIAGNÓSTICO ---------- */
+  async consultarRiscoNasa() {
+    const botao = document.getElementById("btn-consultar");
+    const regiao = document.getElementById("regiao").value;
+    const data = document.getElementById("data").value;
+    const simulacao = document.getElementById("simulacao").value;
+    botao.disabled = true;
+    let dados;
+    try {
+      const r = await fetch(this.url(CONFIG.ENDPOINTS.previsao), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regiao, data, simulacao })
+      });
+      if (!r.ok) throw new Error("Servidor indisponível");
+      dados = await r.json();
+      this.statusConexao(true);
+    } catch (e) {
+      this.statusConexao(false);
+      if (simulacao === "nasa") {       // não inventa dados reais
+        document.getElementById("cenario-titulo").textContent = "Sem dados da NASA";
+        document.getElementById("cenario-desc").textContent =
+          "Não foi possível obter os dados agora. Verifique a internet e o servidor, ou escolha uma simulação.";
+        botao.disabled = false;
+        return;
+      }
+      dados = this.simulacaoLocal(regiao, simulacao);
+    }
+    this.transicionarEstado(dados);
+    botao.disabled = false;
+  }
+
+  simulacaoLocal(regiao, simulacao) {
+    const r = REGIOES[regiao] || REGIOES["Boane"];
+    return { regiao: REGIOES[regiao] ? regiao : "Boane", ...(r.cenarios[simulacao] || r.cenarios.verde),
+             fonte: "Simulação (demonstração)" };
+  }
+
+  tags(id, lista, classe, vazio) {
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    if (!lista || !lista.length) { el.innerHTML = `<span class="muted">${vazio}</span>`; return; }
+    lista.forEach(c => {
+      const s = document.createElement("span");
+      s.className = "tag " + classe; s.textContent = c; el.appendChild(s);
+    });
+  }
+
+  transicionarEstado(d) {
+    this.contrato = d;
+    this.estadoAtual = String(d.nivel).toUpperCase();
+    document.getElementById("uml-state-label").textContent = "ESTADO: " + this.estadoAtual;
+    document.getElementById("prob-badge").textContent = "Confiança: " + Math.round(d.probabilidade * 100) + "%";
+    ["verde", "amarelo", "vermelho"].forEach(c => document.getElementById("luz-" + c).classList.remove("on"));
+    const luz = document.getElementById("luz-" + String(d.nivel).toLowerCase());
+    if (luz) luz.classList.add("on");
+    document.getElementById("cenario-titulo").textContent = `${d.cenario} (${d.regiao})`;
+    document.getElementById("cenario-desc").textContent =
+      (d.explicacao || `Nível de risco ${this.estadoAtual}.`) + (d.fonte ? ` Fonte: ${d.fonte}.` : "");
+    this.tags("lista-regiao", (REGIOES[d.regiao] || {}).principais, "regiao", "--");
+    this.tags("lista-recomendadas", d.culturas_recomendadas, "", "--");
+    this.tags("lista-evitar", d.culturas_a_evitar, "evitar", "Nenhuma restrição");
+    const comp = Number(d.compensacao || 0);
+    document.getElementById("seguro-valor").textContent = comp.toFixed(2) + " MZN";
+    document.getElementById("seguro-status").textContent = comp > 0 ? "Gatilho acionado automaticamente" : "Sem acionamento necessário";
+    this.addMsg("bot", `Consulta concluída para ${d.regiao}: ${d.cenario}. Pode escrever a sua pergunta.`);
+  }
+
+  /* ---------- API 2: CHATBOT ---------- */
+  addMsg(tipo, texto) {
+    const log = document.getElementById("chat-log");
+    const div = document.createElement("div");
+    div.className = "msg " + tipo;
+    div.textContent = texto;           // textContent evita código malicioso
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    return div;
+  }
+
+  async enviarMensagem(textoPronto) {
+    const campo = document.getElementById("chat-texto");
+    const botao = document.getElementById("chat-enviar");
+    const log = document.getElementById("chat-log");
+    const texto = (textoPronto || campo.value).trim();
+    if (!texto || botao.disabled) return;
+    campo.value = "";
+    this.addMsg("user", texto);
+    botao.disabled = true;
+    const espera = this.addMsg("bot typing", "A pensar…");
+
+    const regiao = document.getElementById("regiao").value;
+    const contexto = { regiao, data_plantio: document.getElementById("data").value,
+      diagnostico: this.contrato, culturas_da_regiao: (REGIOES[regiao] || {}).principais };
+
+    let resposta = "", balao = null;
+    try {
+      const r = await fetch(this.url(CONFIG.ENDPOINTS.chat), {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensagem: texto, historico: this.historico.slice(-CONFIG.HISTORICO_MAX), contexto })
+      });
+      if (!r.ok) throw new Error("Chat indisponível");
+
+      if ((r.headers.get("content-type") || "").includes("application/json")) {
+        resposta = (await r.json()).resposta || "";           // formato (b): JSON
+        espera.remove(); balao = this.addMsg("bot", resposta);
+      } else {                                                // formato (a): texto em fluxo
+        const leitor = r.body.getReader();
+        const decodificador = new TextDecoder();
+        while (true) {
+          const { done, value } = await leitor.read();
+          if (done) break;
+          resposta += decodificador.decode(value, { stream: true });
+          if (!balao) { espera.remove(); balao = this.addMsg("bot", ""); }
+          balao.textContent = resposta;
+          log.scrollTop = log.scrollHeight;
+        }
+      }
+      if (!resposta.trim()) throw new Error("Resposta vazia");
+      this.statusConexao(true);
+    } catch (e) {
+      this.statusConexao(false);
+      espera.remove();
+      if (balao) balao.remove();
+      resposta = this.respostaLocal(texto, regiao) + "\n\n(Modo demo: IA offline)";
+      this.addMsg("bot", resposta);
+    }
+    this.historico.push({ role: "user", content: texto }, { role: "assistant", content: resposta });
+    botao.disabled = false; campo.focus();
+  }
+
+  // Respostas escritas à mão, usadas só quando o servidor de IA está desligado
+  respostaLocal(t, regiao) {
+    t = t.toLowerCase();
+    const d = this.contrato, r = REGIOES[regiao] || REGIOES["Boane"];
+    if (/praga|lagarta|inseto|insecto|doen|folha|amarel|mancha/.test(t))
+      return "Veja a parte de baixo das folhas e o caule. Retire as plantas muito doentes, evite regar à noite e não deixe água parada. Leve uma folha ao técnico de extensão agrária para identificar o problema antes de usar qualquer produto.";
+    if (/seguro|compensa|pagamento/.test(t))
+      return !d ? "Faça primeiro a consulta ao satélite." : d.compensacao > 0
+        ? `O seguro foi acionado e prevê ${Number(d.compensacao).toFixed(2)} MZN para ${d.regiao}.` : "No estado VERDE o seguro fica só em monitorização, sem pagamento.";
+    if (/porqu|alerta|nível|nivel/.test(t))
+      return !d ? "Faça primeiro a consulta ao satélite." : (d.explicacao || `Os dados indicam ${d.cenario} em ${d.regiao}.`);
+    if (/plant|cultura|semente|sement/.test(t))
+      return d ? `Em ${d.regiao}, agora recomendamos: ${d.culturas_recomendadas.join(", ")}.` + (d.culturas_a_evitar.length ? ` Evite: ${d.culturas_a_evitar.join(", ")}.` : "")
+               : `As culturas mais plantadas em ${regiao} são: ${r.principais.join(", ")}. Faça a consulta para saber quais são melhores agora.`;
+    if (/rega|água|agua|seca|chuva/.test(t))
+      return "Regue cedo de manhã ou ao fim da tarde. Cubra o solo com palha para guardar humidade. Se o alerta for vermelho, prefira culturas que aguentam a seca.";
+    if (/vend|preço|preco|mercado/.test(t))
+      return "Junte-se a outros produtores da sua associação para vender em maior quantidade e negociar melhor o preço. Consulte os preços no mercado do distrito antes de colher.";
+    return "Pode dar mais detalhes? Diga qual é a cultura, desde quando acontece e o que reparou na machamba.";
+  }
+
+  tocarAudioAlerta() {
+    if (!this.contrato) { alert("Consulte primeiro os dados da machamba para ouvir o alerta."); return; }
+    const d = this.contrato;
+    const texto = `Atenção agricultor de ${d.regiao}. O nível de alerta é ${d.nivel}, com cenário de ${d.cenario}. Recomendamos plantar ${d.culturas_recomendadas.join(", ")}.`;
+    if ("speechSynthesis" in window) {
+      speechSynthesis.cancel();
+      const f = new SpeechSynthesisUtterance(texto); f.lang = "pt-PT"; speechSynthesis.speak(f);
+    } else alert("Áudio IVR: " + texto);
+  }
+}
+const app = new AgroNasaController();
+</script>
+</body>
+</html>
